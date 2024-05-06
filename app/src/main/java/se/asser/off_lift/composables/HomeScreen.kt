@@ -40,8 +40,13 @@ import androidx.compose.ui.unit.dp
 import com.kizitonwose.calendar.compose.WeekCalendar
 import com.kizitonwose.calendar.compose.weekcalendar.rememberWeekCalendarState
 import com.kizitonwose.calendar.core.atStartOfMonth
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.kodein.di.compose.localDI
+import org.kodein.di.instance
+import se.asser.off_lift.ExcerciseRepository
+import se.asser.off_lift.models.WorkoutLog
 import java.time.LocalDate
 import java.time.Year
 import java.time.YearMonth
@@ -53,10 +58,17 @@ import kotlin.time.Duration.Companion.days
 fun HomeScreen(
     onFloatingActionButtonClick: MutableState<(() -> Unit)?>,
 ) {
-    onFloatingActionButtonClick.value = {
-        println("FloatingActionButton clicked!")
-    }
+    val di = localDI()
+    val exerciseRepository : ExcerciseRepository by di.instance()
+
     val coroutineScope = rememberCoroutineScope()
+
+    onFloatingActionButtonClick.value = {
+        coroutineScope.launch {
+            val log = WorkoutLog().apply { name = "TJA" }
+            exerciseRepository.add(log)
+        }
+    }
     var selectedDate by remember { mutableStateOf<LocalDate>(LocalDate.now()) }
 
     val currentYear = Year.now()
@@ -159,8 +171,10 @@ fun HomeScreen(
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxHeight()
-        ) {
-            Text("Selected date is: $selectedDate")
+        ) { page ->
+            if (pagerState.settledPage == page) {
+                WorkoutLogView(date = selectedDate)
+            }
         }
     }
 }
