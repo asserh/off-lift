@@ -36,11 +36,11 @@ fun ExerciseList(items: List<ExerciseListItem>) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp, horizontal = 20.dp)
                     .clickable {
                         item.onTap()
                     }
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp, horizontal = 20.dp)
             ) {
                 item.colorHex?.let {
                     Box(

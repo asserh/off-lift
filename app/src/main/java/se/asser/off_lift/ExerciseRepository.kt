@@ -72,6 +72,9 @@ class ExerciseRepository {
         }
     }
 
+    fun getExercise(exerciseId: ObjectId): Exercise? {
+        return realm.query<Exercise>(idQuery, exerciseId).find().firstOrNull()
+    }
     suspend fun WorkoutLog.addEntry(entry: WorkoutLogEntry) {
         val workoutLog =
             realm.query<WorkoutLog>(idQuery, this.id).find().first()

@@ -97,6 +97,7 @@ fun RootNavigator() {
                 composable("${Screens.LogExercise.route}/{exerciseId}") { backStackEntry ->
                     val id = backStackEntry.arguments?.getString("exerciseId")?.let { ObjectId(it) }
                         ?: return@composable
+                    floatingActionButtonCallback.value = null
                     LogExercise(exerciseId = id)
                 }
             }
