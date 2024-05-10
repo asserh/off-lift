@@ -1,4 +1,4 @@
-package se.asser.off_lift.composables
+package se.asser.off_lift.ui
 
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -40,18 +40,16 @@ import androidx.compose.ui.unit.dp
 import com.kizitonwose.calendar.compose.WeekCalendar
 import com.kizitonwose.calendar.compose.weekcalendar.rememberWeekCalendarState
 import com.kizitonwose.calendar.core.atStartOfMonth
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.kodein.di.compose.localDI
 import org.kodein.di.instance
-import se.asser.off_lift.ExcerciseRepository
-import se.asser.off_lift.models.WorkoutLog
+import se.asser.off_lift.ExerciseRepository
+import se.asser.off_lift.LocalNavController
+import se.asser.off_lift.composables.WorkoutLogView
+import se.asser.off_lift.data.Screens
 import java.time.LocalDate
 import java.time.Year
-import java.time.YearMonth
 import java.time.temporal.ChronoUnit
-import kotlin.time.Duration.Companion.days
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -59,16 +57,18 @@ fun HomeScreen(
     onFloatingActionButtonClick: MutableState<(() -> Unit)?>,
 ) {
     val di = localDI()
-    val exerciseRepository : ExcerciseRepository by di.instance()
+    val exerciseRepository : ExerciseRepository by di.instance()
 
     val coroutineScope = rememberCoroutineScope()
+    val navController = LocalNavController.current
+
 
     onFloatingActionButtonClick.value = {
-        coroutineScope.launch {
-            val log = WorkoutLog().apply { name = "TJA" }
-            exerciseRepository.add(log)
+        navController.navigate(Screens.Categories.route) {
+            launchSingleTop = true
         }
     }
+
     var selectedDate by remember { mutableStateOf<LocalDate>(LocalDate.now()) }
 
     val currentYear = Year.now()
