@@ -31,7 +31,7 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 calendar = { module = "com.kizitonwose.calendar:compose", version.ref = "calendar" }
 realm-library = { group = "io.realm.kotlin", name = "library-base", version.ref = "realm" }
-kodein = { group = "org.kodein.di", name = "kodein-di-framework-compose", version.ref = "kodein" }
+kodein = { group = "org.kodein.di", name = "kodein-di-framework-compose-android", version.ref = "kodein" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
