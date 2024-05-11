@@ -14,41 +14,55 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.kodein.di.compose.rememberDI
 import org.kodein.di.compose.rememberFactory
 import org.kodein.di.instance
 import org.mongodb.kbson.ObjectId
 import se.asser.off_lift.data.ExerciseMetrics
 import se.asser.off_lift.data.MetricType
+import java.time.LocalDate
 
 @Composable
 fun LogExercise(
-    exerciseId: ObjectId
+    exerciseId: ObjectId,
+    date: LocalDate = LocalDate.now()
 ) {
     val model: (ObjectId) -> ExerciseLoggerViewModel by rememberFactory()
     val viewModel: ExerciseLoggerViewModel by rememberDI {
-        instance(arg = exerciseId)
+        instance(arg = LoggerArgs(exerciseId, date))
     }
     val exercise = viewModel.exercise ?: return
+    val coroutineScope = rememberCoroutineScope()
+
     val metrics by remember {
         viewModel.metrics
     }
+    val entries by viewModel.entriesFlow.collectAsState()
 
 
     Column(modifier = Modifier.padding(20.dp)) {
         Text(exercise.name)
 
-        viewModel.entries.forEach {
-            Text(it.toString())
+        entries.forEachIndexed { index, entry ->
+            Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+                Text("${index + 1}")
+                entry.metrics.forEach {
+                    Text("${it.reps} reps")
+                    Text("${it.weight} kg")
+                }
+            }
         }
         Spacer(modifier = Modifier.weight(1f))
 
@@ -65,14 +79,16 @@ fun LogExercise(
 
         Spacer(modifier = Modifier.height(20.dp))
         Row {
-            Button(modifier = Modifier.weight(1f), onClick = { /*TODO*/ }) {
+            Button(
+                modifier = Modifier.weight(1f),
+                onClick = { viewModel.metrics.value = ExerciseMetrics() }) {
                 Text("CLEAR")
             }
             Spacer(modifier = Modifier.width(16.dp))
             Button(
                 colors = ButtonDefaults.buttonColors().copy(containerColor = Color(0xFF049C0A)),
                 modifier = Modifier.weight(1f),
-                onClick = { viewModel.saveEntry() })
+                onClick = { coroutineScope.launch {viewModel.saveEntry() } })
             {
                 Text("SAVE")
             }

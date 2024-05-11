@@ -4,8 +4,8 @@ import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
 import io.realm.kotlin.ext.query
 import io.realm.kotlin.notifications.ResultsChange
+import io.realm.kotlin.query.RealmQuery
 import io.realm.kotlin.query.RealmResults
-import io.realm.kotlin.types.RealmList
 import io.realm.kotlin.types.RealmObject
 import kotlinx.coroutines.flow.Flow
 import org.mongodb.kbson.ObjectId
@@ -15,7 +15,6 @@ import se.asser.off_lift.data.Exercise
 import se.asser.off_lift.data.MetricTypeObject
 import se.asser.off_lift.data.WorkoutLog
 import se.asser.off_lift.data.WorkoutLogEntry
-import java.nio.file.Files.find
 import java.time.LocalDate
 
 private const val idQuery = "id == $0"
@@ -35,25 +34,33 @@ class ExerciseRepository {
 
     val workoutLogs: RealmResults<WorkoutLog> = realm.query<WorkoutLog>().find()
     val exercises: RealmResults<Exercise> = realm.query<Exercise>().find()
-    val categories: Flow<ResultsChange<ExerciseCategory>> =
-        realm.query<ExerciseCategory>().asFlow()
+    val categories: RealmQuery<ExerciseCategory> =
+        realm.query<ExerciseCategory>()
 
-    fun workoutLogsForDate(date: LocalDate): RealmResults<WorkoutLog> {
+    fun workoutLogsForDate(date: LocalDate): Flow<ResultsChange<WorkoutLog>> {
         val dates = date.toRealmInstantRange()
         return realm.query<WorkoutLog>("startTime BETWEEN { $0, $1 }", dates.first, dates.second)
-            .find()
+            .asFlow()
     }
 
-    fun logEntriesForExercise(exerciseId: ObjectId, date: LocalDate? = null): Flow<ResultsChange<WorkoutLog>> {
-        return realm.query<WorkoutLog>("entries.exercise.id == $0", exerciseId).asFlow()
+    fun getLogEntries(
+        workoutLogId: ObjectId? = null,
+        exerciseId: ObjectId? = null,
+    ): Flow<ResultsChange<WorkoutLogEntry>> {
+        return realm.query<WorkoutLogEntry>().apply {
+            workoutLogId?.let { query("parentLogId == $0", it) }
+            exerciseId?.let { query("exerciseId == $0", it) }
+        }.asFlow()
+    }
+
+    suspend fun addEntries(entries: List<WorkoutLogEntry>) {
+        realm.write {
+            entries.forEach { copyToRealm(it) }
+        }
     }
 
     fun getExercisesForCategory(categoryId: ObjectId): RealmResults<Exercise> {
         return realm.query<Exercise>("ALL categories == $0", categoryId).find()
-    }
-
-    fun WorkoutLog.getEntries(): RealmList<WorkoutLogEntry> {
-        return realm.query<WorkoutLog>(idQuery, this.id).find().first().entries
     }
 
     fun Exercise.getHistory(): RealmResults<WorkoutLog> {
@@ -74,14 +81,6 @@ class ExerciseRepository {
 
     fun getExercise(exerciseId: ObjectId): Exercise? {
         return realm.query<Exercise>(idQuery, exerciseId).find().firstOrNull()
-    }
-    suspend fun WorkoutLog.addEntry(entry: WorkoutLogEntry) {
-        val workoutLog =
-            realm.query<WorkoutLog>(idQuery, this.id).find().first()
-
-        realm.write {
-            findLatest(workoutLog)?.entries?.add(entry)
-        }
     }
 
     suspend fun Exercise.addCategory(categoryId: ObjectId) {

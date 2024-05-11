@@ -1,51 +1,71 @@
 package se.asser.off_lift.ui
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.realm.kotlin.ext.realmListOf
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.mongodb.kbson.ObjectId
 import se.asser.off_lift.ExerciseRepository
 import se.asser.off_lift.data.ExerciseMetrics
+import se.asser.off_lift.data.WorkoutLog
 import se.asser.off_lift.data.WorkoutLogEntry
+import java.time.LocalDate
+
+data class LoggerArgs(
+    val exerciseId: ObjectId,
+    val date: LocalDate
+)
 
 class ExerciseLoggerViewModel(
-    exerciseId: ObjectId,
+    private val args: LoggerArgs,
     private val exerciseRepository: ExerciseRepository
 ) : ViewModel() {
-    val entries: SnapshotStateList<WorkoutLogEntry> = mutableStateListOf()
-    val exercise by lazy {
-        exerciseRepository.getExercise(exerciseId)
-    }
-    var metrics = mutableStateOf(ExerciseMetrics())
+    val exercise by lazy { exerciseRepository.getExercise(args.exerciseId)}
 
-    init {
-        viewModelScope.launch {
-            exerciseRepository.logEntriesForExercise(exerciseId).collect { result ->
-                entries.clear()
-                entries.addAll(result.list.map { it.entries.map { it } }.flatten())
-            }
+    private val logFlow = exerciseRepository.workoutLogsForDate(args.date)
+        .map { it.list.firstOrNull() }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val entriesFlow = logFlow.flatMapLatest { log ->
+        if (log != null) {
+            exerciseRepository.getLogEntries(
+                workoutLogId = log.id,
+                exerciseId = args.exerciseId
+            ).map { result -> result.list }
+        } else {
+            flowOf(emptyList())
         }
-    }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    var metrics = mutableStateOf(ExerciseMetrics())
 
     suspend fun addMetrics() {
         // TODO: Add metrics to existing log entry
     }
 
-    fun saveEntry() {
-        val entry = WorkoutLogEntry().apply {
-            exercise = this@ExerciseLoggerViewModel.exercise
-            metrics = realmListOf(this@ExerciseLoggerViewModel.metrics.value)
-        }
+    suspend fun saveEntry() {
         viewModelScope.launch {
+            val log = logFlow.firstOrNull() ?: createAndRetrieveLog()
+            val entry = WorkoutLogEntry().apply {
+                parentLogId = log.id
+                exerciseId = this@ExerciseLoggerViewModel.exercise?.id ?: args.exerciseId
+                metrics = realmListOf(this@ExerciseLoggerViewModel.metrics.value)
+            }
             exerciseRepository.add(entry)
         }
+    }
+
+    private suspend fun createAndRetrieveLog(): WorkoutLog {
+        val newLog = WorkoutLog()
+        exerciseRepository.add(WorkoutLog())
+        return newLog
     }
 
     override fun onCleared() {

@@ -12,7 +12,6 @@ import org.mongodb.kbson.ObjectId
 class WorkoutLog : RealmObject {
     @PrimaryKey
     var id: ObjectId = ObjectId()
-    var entries: RealmList<WorkoutLogEntry> = realmListOf()
     var startTime: RealmInstant = RealmInstant.now()
     var endTime: RealmInstant? = null
     var name: String? = null
@@ -21,7 +20,8 @@ class WorkoutLog : RealmObject {
 }
 
 class WorkoutLogEntry : RealmObject {
-    var exercise: Exercise? = null
+    var parentLogId: ObjectId = ObjectId()
+    var exerciseId: ObjectId = ObjectId()
     var metrics: RealmList<ExerciseMetrics> = realmListOf()
     var rpe: Int? = null
     var notes: String? = null

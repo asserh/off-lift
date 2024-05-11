@@ -12,7 +12,7 @@ import se.asser.off_lift.ExerciseRepository
 import se.asser.off_lift.data.ExerciseCategory
 
 class AddWorkoutViewModel(exerciseRepository: ExerciseRepository) : ViewModel() {
-    private val categoriesFlow: Flow<ResultsChange<ExerciseCategory>> = exerciseRepository.categories
+    private val categoriesFlow: Flow<ResultsChange<ExerciseCategory>> = exerciseRepository.categories.asFlow()
     val categories: SnapshotStateList<ExerciseCategory> = mutableStateListOf()
 
     init {
