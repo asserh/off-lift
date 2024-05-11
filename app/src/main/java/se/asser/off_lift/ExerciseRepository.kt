@@ -43,13 +43,8 @@ class ExerciseRepository {
             .asFlow()
     }
 
-    fun getLogEntries(
-        workoutLogId: ObjectId? = null,
-        exerciseId: ObjectId? = null,
-    ): Flow<ResultsChange<WorkoutLog>> {
-        return realm.query<WorkoutLog>(idQuery, workoutLogId).apply {
-            exerciseId?.let { query("ALL entries.exerciseId == $0", it) }
-        }.asFlow()
+    fun getWorkoutLog(workoutLogId: ObjectId, ): Flow<ResultsChange<WorkoutLog>> {
+        return realm.query<WorkoutLog>(idQuery, workoutLogId).asFlow()
     }
 
     suspend fun addEntry(logId: ObjectId, entry: WorkoutLogEntry) {

@@ -36,15 +36,15 @@ class MainApplication : Application(), DIAware {
         val excerciseRepository: ExerciseRepository by di.instance()
 
         // TODO: Just for testing
-//        if (true) {
-//            GlobalScope.launch {
-//                defaultCategories.forEach { excerciseRepository.add(it) }
-//                val categories = excerciseRepository.categories.find().map { it.id }.toRealmSet()
-//                defaultExercises
-//                    .map { it.apply { categories.addAll(categories) } }
-//                    .forEach { excerciseRepository.add(it) }
-//            }
-//        }
+        if (true) {
+            GlobalScope.launch {
+                defaultCategories.forEach { excerciseRepository.add(it) }
+                val categories = excerciseRepository.categories.find().map { it.id }.toRealmSet()
+                defaultExercises
+                    .map { it.apply { categories.addAll(categories) } }
+                    .forEach { excerciseRepository.add(it) }
+            }
+        }
 
         super.onCreate()
     }

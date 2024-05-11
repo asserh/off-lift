@@ -44,7 +44,6 @@ import kotlinx.coroutines.launch
 import org.kodein.di.compose.localDI
 import org.kodein.di.instance
 import se.asser.off_lift.ExerciseRepository
-import se.asser.off_lift.LocalAppBarState
 import se.asser.off_lift.LocalNavController
 import se.asser.off_lift.composables.WorkoutLogView
 import se.asser.off_lift.data.Screens
@@ -62,8 +61,6 @@ fun HomeScreen(
 
     val coroutineScope = rememberCoroutineScope()
     val navController = LocalNavController.current
-    LocalAppBarState.current.appBarTitle = "Off-Lift"
-
 
     onFloatingActionButtonClick.value = {
         navController.navigate(Screens.Categories.route) {

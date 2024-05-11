@@ -24,7 +24,6 @@ class MainActivity : ComponentActivity(), DIAware {
             withDI(di = di) {
                 CompositionLocalProvider(
                     LocalNavController provides rememberNavController(),
-                    LocalAppBarState provides remember { AppBarState() }
                 ) {
                     OffLiftTheme {
                         RootNavigator()
@@ -35,8 +34,6 @@ class MainActivity : ComponentActivity(), DIAware {
 
     }
 }
-
-val LocalAppBarState = compositionLocalOf { AppBarState() }
 
 val LocalNavController = compositionLocalOf<NavHostController> {
     error("No NavController provided")

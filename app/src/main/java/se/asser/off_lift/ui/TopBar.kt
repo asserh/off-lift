@@ -3,23 +3,16 @@ package se.asser.off_lift.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-
 import androidx.navigation.compose.currentBackStackEntryAsState
 import org.kodein.di.compose.rememberDI
 import org.kodein.di.instance
-import se.asser.off_lift.LocalAppBarState
 import se.asser.off_lift.LocalNavController
 import se.asser.off_lift.data.AppBarState
 import se.asser.off_lift.data.Screens

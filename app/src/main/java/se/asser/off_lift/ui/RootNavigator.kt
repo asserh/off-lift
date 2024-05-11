@@ -34,7 +34,6 @@ import se.asser.off_lift.data.BottomNavigationItem.Companion.bottomNavigationIte
 import se.asser.off_lift.data.Screens
 import org.kodein.di.instance
 import org.mongodb.kbson.ObjectId
-import se.asser.off_lift.LocalAppBarState
 import se.asser.off_lift.data.AppBarState
 import se.asser.off_lift.viewmodels.AddWorkoutViewModel
 
@@ -42,18 +41,13 @@ import se.asser.off_lift.viewmodels.AddWorkoutViewModel
 fun RootNavigator() {
     val floatingActionButtonCallback: MutableState<(() -> Unit)?> = remember { mutableStateOf({}) }
     val appBarState: AppBarState by rememberDI { instance() }
-    var showBottomBar by remember { mutableStateOf(true) }
     val exerciseRepository: ExerciseRepository by rememberDI { instance() }
 
     val navController = LocalNavController.current
 
     Scaffold(
         topBar = { TopBar() },
-        bottomBar = {
-            if (showBottomBar) {
-                NavBar(navController)
-            }
-        },
+        bottomBar = { NavBar(navController) },
         floatingActionButton = {
             if (floatingActionButtonCallback.value != null) {
                 FloatingActionButton(

@@ -28,7 +28,7 @@ class ExerciseLoggerViewModel(
     private val args: LoggerArgs,
     private val exerciseRepository: ExerciseRepository
 ) : ViewModel() {
-    val exercise by lazy { exerciseRepository.getExercise(args.exerciseId)}
+    val exercise by lazy { exerciseRepository.getExercise(args.exerciseId) }
 
     private val logFlow = exerciseRepository.workoutLogsForDate(args.date)
         .map { it.list.firstOrNull() }
@@ -36,10 +36,15 @@ class ExerciseLoggerViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val entriesFlow = logFlow.flatMapLatest { log ->
         if (log != null) {
-            exerciseRepository.getLogEntries(
+            exerciseRepository.getWorkoutLog(
                 workoutLogId = log.id,
-                exerciseId = args.exerciseId
-            ).map { result -> result.list.map { it.entries }.flatten() }
+            ).map { result ->
+                result.list.map { log ->
+                    log.entries.filter { entry ->
+                        entry.exerciseId == exercise?.id
+                    }
+                }.flatten()
+            }
         } else {
             flowOf(emptyList())
         }
