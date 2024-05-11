@@ -46,16 +46,17 @@ class ExerciseRepository {
     fun getLogEntries(
         workoutLogId: ObjectId? = null,
         exerciseId: ObjectId? = null,
-    ): Flow<ResultsChange<WorkoutLogEntry>> {
-        return realm.query<WorkoutLogEntry>().apply {
-            workoutLogId?.let { query("parentLogId == $0", it) }
-            exerciseId?.let { query("exerciseId == $0", it) }
+    ): Flow<ResultsChange<WorkoutLog>> {
+        return realm.query<WorkoutLog>(idQuery, workoutLogId).apply {
+            exerciseId?.let { query("ALL entries.exerciseId == $0", it) }
         }.asFlow()
     }
 
-    suspend fun addEntries(entries: List<WorkoutLogEntry>) {
+    suspend fun addEntry(logId: ObjectId, entry: WorkoutLogEntry) {
         realm.write {
-            entries.forEach { copyToRealm(it) }
+            val log = realm.query<WorkoutLog>(idQuery, logId).find().first()
+            val managedLog = findLatest(log) ?: return@write
+            managedLog.entries.add(entry)
         }
     }
 

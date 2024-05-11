@@ -1,5 +1,6 @@
 package se.asser.off_lift.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -10,6 +11,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -31,11 +34,14 @@ import se.asser.off_lift.data.BottomNavigationItem.Companion.bottomNavigationIte
 import se.asser.off_lift.data.Screens
 import org.kodein.di.instance
 import org.mongodb.kbson.ObjectId
+import se.asser.off_lift.LocalAppBarState
+import se.asser.off_lift.data.AppBarState
 import se.asser.off_lift.viewmodels.AddWorkoutViewModel
 
 @Composable
 fun RootNavigator() {
     val floatingActionButtonCallback: MutableState<(() -> Unit)?> = remember { mutableStateOf({}) }
+    val appBarState: AppBarState by rememberDI { instance() }
     var showBottomBar by remember { mutableStateOf(true) }
     val exerciseRepository: ExerciseRepository by rememberDI { instance() }
 
@@ -66,9 +72,11 @@ fun RootNavigator() {
             route = Screens.Root.route
         ) {
             composable(Screens.Home.route) {
+                appBarState.appBarTitle = Screens.Home.title
                 HomeScreen(floatingActionButtonCallback)
             }
             composable(Screens.Settings.route) {
+                appBarState.appBarTitle = Screens.Home.title
                 Text("Settings!")
             }
             navigation(
@@ -76,34 +84,53 @@ fun RootNavigator() {
                 route = Screens.CreateWorkout.route
             ) {
                 composable(Screens.Categories.route) {
-                    val viewModel: AddWorkoutViewModel by rememberViewModel()
-                    val items = viewModel.categories.map {
-                        ExerciseListItem(it.name, it.colorHex) {
-                            navController.navigate("${Screens.SelectExercise.route}/${it.id.toHexString()}")
+                    appBarState.appBarTitle = Screens.Categories.title
+                    WithTitle(Screens.Categories.title) {
+                        val viewModel: AddWorkoutViewModel by rememberViewModel()
+                        val items = viewModel.categories.map {
+                            ExerciseListItem(it.name, it.colorHex) {
+                                navController.navigate("${Screens.SelectExercise.route}/${it.id.toHexString()}")
+                            }
                         }
+                        ExerciseList(items)
                     }
-                    ExerciseList(items)
                 }
                 composable("${Screens.SelectExercise.route}/{categoryId}") { backStackEntry ->
-                    val id = backStackEntry.arguments?.getString("categoryId")?.let { ObjectId(it) }
-                        ?: return@composable
-                    val items = exerciseRepository.getExercisesForCategory(id).map {
-                        ExerciseListItem(it.name) {
-                            navController.navigate("${Screens.LogExercise.route}/${it.id.toHexString()}")
+                    appBarState.appBarTitle = Screens.SelectExercise.title
+                    WithTitle(title = Screens.SelectExercise.title) {
+                        val id =
+                            backStackEntry.arguments?.getString("categoryId")?.let { ObjectId(it) }
+                                ?: return@WithTitle
+                        val items = exerciseRepository.getExercisesForCategory(id).map {
+                            ExerciseListItem(it.name) {
+                                navController.navigate("${Screens.LogExercise.route}/${it.id.toHexString()}")
+                            }
                         }
+                        ExerciseList(items)
                     }
-                    ExerciseList(items)
                 }
                 composable("${Screens.LogExercise.route}/{exerciseId}") { backStackEntry ->
-                    val id = backStackEntry.arguments?.getString("exerciseId")?.let { ObjectId(it) }
-                        ?: return@composable
+                    val id =
+                        backStackEntry.arguments?.getString("exerciseId")?.let { ObjectId(it) }
+                            ?: return@composable
                     floatingActionButtonCallback.value = null
                     LogExercise(exerciseId = id)
+
                 }
             }
         }
 
     }
+}
+
+@Composable
+private fun WithTitle(title: String, content: @Composable () -> Unit) {
+    val appBarState: AppBarState by rememberDI { instance() }
+    LaunchedEffect(Unit) {
+        appBarState.appBarTitle = title
+        appBarState.actions = { }
+    }
+    content()
 }
 
 @Composable

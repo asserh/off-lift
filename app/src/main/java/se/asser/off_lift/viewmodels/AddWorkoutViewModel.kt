@@ -24,8 +24,4 @@ class AddWorkoutViewModel(exerciseRepository: ExerciseRepository) : ViewModel() 
             }
         }
     }
-
-    override fun onCleared() {
-        super.onCleared()
-    }
 }

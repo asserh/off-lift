@@ -2,6 +2,7 @@ package se.asser.off_lift.data
 
 import io.realm.kotlin.ext.realmListOf
 import io.realm.kotlin.ext.realmSetOf
+import io.realm.kotlin.types.EmbeddedRealmObject
 import io.realm.kotlin.types.RealmInstant
 import io.realm.kotlin.types.RealmList
 import io.realm.kotlin.types.RealmObject
@@ -12,6 +13,7 @@ import org.mongodb.kbson.ObjectId
 class WorkoutLog : RealmObject {
     @PrimaryKey
     var id: ObjectId = ObjectId()
+    var entries = realmListOf<WorkoutLogEntry>()
     var startTime: RealmInstant = RealmInstant.now()
     var endTime: RealmInstant? = null
     var name: String? = null
@@ -19,8 +21,7 @@ class WorkoutLog : RealmObject {
     var rpe: Int? = null
 }
 
-class WorkoutLogEntry : RealmObject {
-    var parentLogId: ObjectId = ObjectId()
+class WorkoutLogEntry : EmbeddedRealmObject {
     var exerciseId: ObjectId = ObjectId()
     var metrics: RealmList<ExerciseMetrics> = realmListOf()
     var rpe: Int? = null

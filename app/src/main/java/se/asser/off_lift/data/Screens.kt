@@ -5,13 +5,13 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
-sealed class Screens(val route: String) {
-    data object Home : Screens("home")
-    data object Settings : Screens("settings")
+sealed class Screens(val route: String, val title: String = "") {
+    data object Home : Screens("home", "Off-Lift")
+    data object Settings : Screens("settings", "Settings")
     data object Root : Screens("root")
     data object CreateWorkout : Screens("create_workout")
-    data object Categories : Screens("categories")
-    data object SelectExercise : Screens("select_exercise")
+    data object Categories : Screens("categories", "Categories")
+    data object SelectExercise : Screens("select_exercise", "Exercises")
     data object LogExercise : Screens("log_exercise")
 }
 

@@ -17,6 +17,7 @@ import org.kodein.di.factory
 import org.kodein.di.instance
 import org.kodein.di.provider
 import org.kodein.di.singleton
+import se.asser.off_lift.data.AppBarState
 import se.asser.off_lift.data.defaultCategories
 import se.asser.off_lift.data.defaultExercises
 import se.asser.off_lift.ui.ExerciseLoggerViewModel
@@ -27,6 +28,7 @@ class MainApplication : Application(), DIAware {
     override val di = DI.lazy {
         bind<ExerciseRepository> { singleton { ExerciseRepository() } }
         bind<AddWorkoutViewModel> { provider { AddWorkoutViewModel(instance()) } }
+        bind<AppBarState> { singleton { AppBarState() } }
         bind<ExerciseLoggerViewModel> { factory { args: LoggerArgs -> ExerciseLoggerViewModel(args, instance()) } }
     }
 

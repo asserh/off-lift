@@ -39,7 +39,7 @@ class ExerciseLoggerViewModel(
             exerciseRepository.getLogEntries(
                 workoutLogId = log.id,
                 exerciseId = args.exerciseId
-            ).map { result -> result.list }
+            ).map { result -> result.list.map { it.entries }.flatten() }
         } else {
             flowOf(emptyList())
         }
@@ -54,11 +54,10 @@ class ExerciseLoggerViewModel(
         viewModelScope.launch {
             val log = logFlow.firstOrNull() ?: createAndRetrieveLog()
             val entry = WorkoutLogEntry().apply {
-                parentLogId = log.id
                 exerciseId = this@ExerciseLoggerViewModel.exercise?.id ?: args.exerciseId
                 metrics = realmListOf(this@ExerciseLoggerViewModel.metrics.value)
             }
-            exerciseRepository.add(entry)
+            exerciseRepository.addEntry(log.id, entry)
         }
     }
 
@@ -66,10 +65,5 @@ class ExerciseLoggerViewModel(
         val newLog = WorkoutLog()
         exerciseRepository.add(WorkoutLog())
         return newLog
-    }
-
-    override fun onCleared() {
-        print("Here we go!")
-        super.onCleared()
     }
 }
